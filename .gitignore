@@ -1,0 +1,17 @@
+# 构建产物 / Build outputs
+build/
+
+# 本地签名密钥 / Local signing key
+*.p12
+*.jks
+*.keystore
+
+# IDE / Editor
+.idea/
+*.iml
+.vscode/
+*.class
+
+# 系统文件 / OS files
+.DS_Store
+Thumbs.db

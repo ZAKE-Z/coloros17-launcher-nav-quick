@@ -44,23 +44,26 @@ An Xposed module for OPPO / OnePlus (ColorOS / OxygenOS) stock launchers that re
 - `RowPlan.build()`: plans selected apps into rows grouped by letter (a group may span multiple rows).
 - `Entry.java`: hooks internal launcher methods to swap the app list, adjust row/group spacing, draw group labels, and tweak the right-side letter bar spacing.
 
-### 调整字母栏间距 / Adjusting the letter bar spacing
+### 两个构建版本 / Two build variants
 
-在 `Entry.java` 中搜索 `setItemSpacing`：
+仓库只提供两个版本，没有中间过渡版本。运行 `bash build.sh` 会同时生成：
 
-```java
-// 间距调整为 8px（原厂为 4px）
-int targetSpacing = 8;
-```
+Two variants only — no intermediate builds. `bash build.sh` produces both:
 
-`beforeHookedMethod` 与 `onAttachedToWindow` 两处的 `targetSpacing` 需保持一致。
+| 版本 / Variant | APK | 字母栏间距 / Letter bar spacing |
+| --- | --- | --- |
+| 原始间距版 / Stock spacing | `OPPO-Drawer-Groups-StockSpacing.apk` | 不修改，保持原厂 `4px` / untouched, stock `4px` |
+| 间距修改版 / Spacing modified | `OPPO-Drawer-Groups-Spacing8px.apk` | Hook `setItemSpacing` 改为 `8px` / hooks `setItemSpacing` to `8px` |
 
-- 原厂默认值：**`4px`**
-- 当前示例值：**`8px`**
+两者共用同一个包名 `org.oppo.drawergroups`，**只能二选一安装**。两者字母分组功能完全一致，唯一区别是是否调整右侧 A–Z 字母栏间距。
 
-`targetSpacing` 是**物理像素（px）**，不是 dp，**不要乘以 `density`**。修改后重新构建并安装即可。
+Both variants share the same package name `org.oppo.drawergroups` — **install only one**. Grouping behavior is identical; the only difference is whether the right-side A–Z letter bar spacing is adjusted.
 
-Edit the two `targetSpacing` assignments in `Entry.java` (in `beforeHookedMethod` and `onAttachedToWindow`) to the same value. The value is in **raw pixels (px)**, not dp — do **not** multiply by `density`. Stock is `4px`; rebuild and reinstall after changing.
+### 调整间距数值 / Changing the spacing value
+
+间距由 `src/org/oppo/drawergroups/BuildConfig.java` 的 `SPACING_PX` 常量控制（**物理像素 px，不是 dp，不要乘以 density / raw pixels, not dp — do not multiply by density**）。原厂为 `4px`，间距修改版默认 `8px`。修改后重新构建即可。间距 Hook 的开关是同文件的 `ENABLE_SPACING_HOOK`。
+
+The spacing is controlled by `SPACING_PX` in `src/org/oppo/drawergroups/BuildConfig.java` (raw pixels, not dp). Stock is `4px`; the spacing variant defaults to `8px`. Rebuild after changing. The hook on/off switch is `ENABLE_SPACING_HOOK` in the same file.
 
 ---
 
@@ -81,7 +84,9 @@ Edit the two `targetSpacing` assignments in `Entry.java` (in `beforeHookedMethod
 bash build.sh
 ```
 
-产物输出 / Output: `build/out/OPPO-Drawer-Groups.apk`
+产物输出 / Output:
+- `build/out/OPPO-Drawer-Groups-StockSpacing.apk`（原始间距 / stock spacing）
+- `build/out/OPPO-Drawer-Groups-Spacing8px.apk`（间距修改 / spacing 8px）
 
 `assets/xposed_init` 声明入口类 `org.oppo.drawergroups.Entry`。
 
@@ -93,7 +98,7 @@ bash build.sh
 
 ## 安装与使用 / Install & use
 
-1. 安装 `build/out/OPPO-Drawer-Groups.apk`（无启动界面）。
+1. 从上述两个版本中**任选一个**安装（无启动界面）。/ Install **one** of the two APKs above (no launcher UI).
 2. 在 Xposed 框架管理器中启用本模块，**仅勾选系统桌面** `com.android.launcher`。
 3. 按框架提示重启桌面进程或手机，打开应用抽屉查看效果。
 

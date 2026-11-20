@@ -135,14 +135,16 @@ public final class Entry implements IXposedHookLoadPackage {
             XposedBridge.log("OPPO Drawer Groups: hook installed");
             
             // Hook COUITouchSearchView 调整右侧字母栏间距
+            // 仅在启用间距修改的构建变体中执行（原厂间距变体跳过）
             try {
+                if (!BuildConfig.ENABLE_SPACING_HOOK) return;
                 Class<?> touchSearchClass = p.classLoader.loadClass("com.coui.appcompat.touchsearchview.COUITouchSearchView");
                 XposedHelpers.findAndHookMethod(touchSearchClass, "setItemSpacing", int.class, new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) {
                         try {
-                            // 间距调整为 8px（原厂为 4px）
-                            int targetSpacing = 8;
+                            // 间距由构建配置决定（原厂为 4px）
+                            int targetSpacing = BuildConfig.SPACING_PX;
                             param.args[0] = targetSpacing;
                         } catch (Throwable t) {
                             XposedBridge.log("OPPO Drawer spacing hook error: " + t);
@@ -154,7 +156,7 @@ public final class Entry implements IXposedHookLoadPackage {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) {
                         try {
-                            int targetSpacing = 8;
+                            int targetSpacing = BuildConfig.SPACING_PX;
                             Method setSpacing = touchSearchClass.getMethod("setItemSpacing", int.class);
                             setSpacing.invoke(param.thisObject, targetSpacing);
                         } catch (Throwable t) {
